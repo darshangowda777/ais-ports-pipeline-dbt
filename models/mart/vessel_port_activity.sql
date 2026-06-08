@@ -6,9 +6,18 @@ ports as (
     select * from {{ ref('stg_ports') }}
 ),
 
+-- Keep only the latest ping per vessel
+latest_vessels as (
+    select *
+    from vessels
+    qualify row_number() over (
+        partition by mmsi
+        order by ais_timestamp desc
+    ) = 1
+),
+
 joined as (
     select
-        -- vessel fields
         v.mmsi,
         v.vessel_name,
         v.vessel_type,
@@ -24,7 +33,6 @@ joined as (
         v.distance_nmi,
         v.is_congestion,
 
-        -- port fields from static dataset
         p.port_id,
         p.port_name,
         p.country_code,
@@ -36,7 +44,6 @@ joined as (
         p.channel_depth_m,
         p.cargo_pier_depth_m,
 
-        -- derived analytics columns
         case
             when v.draught_m > 0 and p.channel_depth_m > 0
             then round(v.draught_m / p.channel_depth_m * 100, 1)
@@ -58,7 +65,7 @@ joined as (
             else 'Fast'
         end as speed_category
 
-    from vessels v
+    from latest_vessels v
     left join ports p on v.port_id = p.port_id
 )
 
