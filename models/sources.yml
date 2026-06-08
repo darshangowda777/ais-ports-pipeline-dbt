@@ -1,0 +1,11 @@
+version: 2
+
+sources:
+  - name: raw
+    database: ais-ports-pipeline-2
+    schema: raw
+    tables:
+      - name: vessel_pings
+        description: "Live AIS vessel position data enriched with port geofence join"
+      - name: world_port_index
+        description: "Static NGA World Port Index with 3804 global ports"
