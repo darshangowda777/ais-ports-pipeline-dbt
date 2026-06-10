@@ -15,10 +15,19 @@ cleaned as (
         nav_status_code,
         draught_m,
         destination,
-        ais_timestamp,
+
+        -- Clean timestamp: strip nanoseconds and +0000 UTC suffix
+        TIMESTAMP(
+            REGEXP_REPLACE(
+                CAST(ais_timestamp AS STRING),
+                r'\.\d+ \+0000 UTC$', ''
+            )
+        ) AS ais_timestamp,
+
         port_id,
         distance_nmi,
         is_congestion
+
     from source
     where latitude is not null
       and longitude is not null
