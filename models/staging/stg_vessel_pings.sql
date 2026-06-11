@@ -16,11 +16,14 @@ cleaned as (
         draught_m,
         destination,
 
-        -- Clean timestamp: strip nanoseconds and +0000 UTC suffix
-        TIMESTAMP(
-            REGEXP_REPLACE(
-                CAST(ais_timestamp AS STRING),
-                r'\.\d+ \+0000 UTC$', ''
+        -- Clean timestamp: handle old format (with UTC suffix), new clean format, and empty strings
+        SAFE.TIMESTAMP(
+            NULLIF(
+                REGEXP_REPLACE(
+                    CAST(ais_timestamp AS STRING),
+                    r'\.\d+ \+0000 UTC$', ''
+                ),
+                ''
             )
         ) AS ais_timestamp,
 
